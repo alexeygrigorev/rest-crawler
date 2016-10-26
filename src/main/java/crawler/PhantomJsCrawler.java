@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -65,32 +64,50 @@ public class PhantomJsCrawler implements AutoCloseable, Crawler {
 
     @Override
     public Optional<String> crawl(String url) {
-        Future<String> future = executor.submit(() -> doCrawl(url));
-        try {
-            String html = future.get(timeout, TimeUnit.MILLISECONDS);
-            return Optional.of(html);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOGGER.debug("time out for {}", url);
-            return Optional.empty();
-        }
+        return doRetryCrawl(url);
     }
 
-    private String doCrawl(String url) {
-        try {
-            LOGGER.info("crawling {}...", url);
-            WebDriver driver = pool.borrowObject();
+    private Optional<String> doRetryCrawl(String url) {
+        int numTrials = 3;
+        Exception lastCaughtException = null;
 
+        // sometimes the driver is not available. let's try several times with different drivers
+        while (numTrials > 0) {
             try {
+                return unsafeTimeoutCrawl(url);
+            } catch (Exception e) {
+                lastCaughtException = e;
+                LOGGER.warn("unexpected error happened, swallowing it", e);
+            }
+            numTrials--;
+            sleep();
+        }
+
+        LOGGER.warn("could not finish the crawl after 3 trials, last exception: ", lastCaughtException);
+        return Optional.empty();
+    }
+
+    private Optional<String> unsafeTimeoutCrawl(String url) throws Exception {
+        LOGGER.info("crawling {}...", url);
+        WebDriver driver = pool.borrowObject();
+
+        try {
+            Future<String> future = executor.submit(() -> {
                 driver.get(url);
                 sleep();
                 return driver.getPageSource();
-            } finally {
-                pool.returnObject(driver);
+            });
+
+            try {
+                String html = future.get(timeout, TimeUnit.MILLISECONDS);
+                return Optional.of(html);
+            } catch (TimeoutException e) {
+                LOGGER.debug("timeout while crawling {}", url);
+                return Optional.empty();
             }
-        } catch (Exception e) {
-            LOGGER.warn("unexpected error happened, rethrowing it", e);
-            throw new RuntimeException(e);
-        } 
+        } finally {
+            pool.returnObject(driver);
+        }
     }
 
     private void sleep() {
