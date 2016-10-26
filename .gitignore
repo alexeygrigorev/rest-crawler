@@ -1,0 +1,12 @@
+/target/
+.classpath
+.project
+/cache/
+/.settings/
+/log/
+/libs/
+/*.db
+/*.db.p
+*.zip
+*.bin
+/config/
