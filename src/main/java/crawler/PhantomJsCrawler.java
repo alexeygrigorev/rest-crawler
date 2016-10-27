@@ -69,21 +69,19 @@ public class PhantomJsCrawler implements AutoCloseable, Crawler {
 
     private Optional<String> doRetryCrawl(String url) {
         int numTrials = 3;
-        Exception lastCaughtException = null;
 
         // sometimes the driver is not available. let's try several times with different drivers
         while (numTrials > 0) {
             try {
                 return unsafeTimeoutCrawl(url);
             } catch (Exception e) {
-                lastCaughtException = e;
                 LOGGER.warn("unexpected error happened, swallowing it", e);
             }
             numTrials--;
             sleep();
         }
 
-        LOGGER.warn("could not finish the crawl after 3 trials, last exception: ", lastCaughtException);
+        LOGGER.warn("could not finish the crawl after 3 trials");
         return Optional.empty();
     }
 
