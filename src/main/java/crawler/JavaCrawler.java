@@ -52,10 +52,13 @@ public class JavaCrawler implements Crawler {
         try {
             String html = future.get(timeout, TimeUnit.MILLISECONDS);
             return Optional.of(html);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (TimeoutException e) {
             LOGGER.debug("time out for {}", url);
-            return Optional.empty();
+        } catch (InterruptedException | ExecutionException e) {
+            LOGGER.debug("execution exception for {}: {}", url, e.getMessage());
         }
+
+        return Optional.empty();
     }
 
     private String doCrawl(String url) {
