@@ -1,0 +1,1 @@
+java -cp libs/*:. crawler.BalancerRestApp --server.port=9010
