@@ -22,8 +22,6 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="RollingFsLog"/>
     </Root>
-    <Logger name="org.hibernate" level="warn"/>
-    <Logger name="org.eclipse.jetty" level="warn"/>
     <Logger name="org.springframework" level="info"/>
     <Logger name="org.apache.http" level="warn"/>
   </Loggers>
