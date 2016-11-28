@@ -16,11 +16,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 public class HttpComponentsCrawler implements Crawler, AutoCloseable {
 
@@ -37,10 +41,19 @@ public class HttpComponentsCrawler implements Crawler, AutoCloseable {
     }
 
     private static CloseableHttpClient createHttpComponent() {
-        return HttpClientBuilder.create()
-                .setRedirectStrategy(new LaxRedirectStrategy())
-                .setUserAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0")
-                .build();
+        try {
+            SSLContextBuilder sslCtx = SSLContextBuilder.create();
+            sslCtx.loadTrustMaterial(null, (c, t) -> true);
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslCtx.build());
+
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setRedirectStrategy(new LaxRedirectStrategy());
+            builder.setSSLSocketFactory(sslsf);
+            builder.setUserAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0");
+            return builder.build();
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     public HttpComponentsCrawler(int maxThreads, int timeout) {
@@ -79,7 +92,7 @@ public class HttpComponentsCrawler implements Crawler, AutoCloseable {
     private String doCrawl(String url) {
         try {
             HttpGet get = new HttpGet(url);
-            
+
             try (CloseableHttpResponse response = client.execute(get)) {
                 HttpEntity entity = response.getEntity();
                 return IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8);
@@ -96,4 +109,3 @@ public class HttpComponentsCrawler implements Crawler, AutoCloseable {
     }
 
 }
-
