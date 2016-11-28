@@ -35,7 +35,7 @@ public class CrawlerContainer {
             @Named("crawlingExecutor") ExecutorService executor,
             @Value("${crawler.java.timeout}") int timeOut, 
             @Value("${crawler.java.cache.ttl.hours}") int cacheTtl) {
-        JavaCrawler crawler = new JavaCrawler(timeOut, executor);
+        HttpComponentsCrawler crawler = new HttpComponentsCrawler(timeOut, executor);
         return new CachingCrawler(crawler, "java", cacheTtl);
     }
 
