@@ -4,7 +4,8 @@ import requests
 crawler_url = 'http://localhost:9811/crawl?js=true&urls=%s'
 
 def crawl(urls):
-    urls_encoded = urllib.quote(';'.join(urls)).decode('utf8')
+    urls = [u.encode('unicode-escape') for u in urls]
+    urls_encoded = urllib.quote(';'.join(urls))
     query_url = crawler_url % urls_encoded
     return requests.get(query_url).json()
 
