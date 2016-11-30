@@ -1,4 +1,4 @@
-package crawler;
+package crawler.crawlers;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -76,10 +77,9 @@ public class HttpComponentsCrawler implements Crawler, AutoCloseable {
 
     @Override
     public Optional<String> crawl(String url) {
-        Future<String> future = executor.submit(() -> doCrawl(url));
+        Future<Optional<String>> future = executor.submit(() -> doCrawl(url));
         try {
-            String html = future.get(timeout, TimeUnit.MILLISECONDS);
-            return Optional.of(html);
+            return future.get(timeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             LOGGER.debug("time out for {}", url);
         } catch (InterruptedException | ExecutionException e) {
@@ -89,13 +89,17 @@ public class HttpComponentsCrawler implements Crawler, AutoCloseable {
         return Optional.empty();
     }
 
-    private String doCrawl(String url) {
+    private Optional<String> doCrawl(String url) {
         try {
             HttpGet get = new HttpGet(url);
 
             try (CloseableHttpResponse response = client.execute(get)) {
                 HttpEntity entity = response.getEntity();
-                return IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8);
+                String html = IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8);
+                return Optional.of(html);
+            } catch (ConnectTimeoutException e) {
+                LOGGER.info("connection timeout for {}", url);
+                return Optional.empty();
             }
         } catch (Exception e) {
             LOGGER.warn("unexpected error happened, rethrowing it", e);

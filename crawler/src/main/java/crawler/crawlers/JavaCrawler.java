@@ -1,4 +1,4 @@
-package crawler;
+package crawler.crawlers;
 
 import java.net.URL;
 import java.util.List;

@@ -9,6 +9,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import crawler.crawlers.CachingCrawler;
+import crawler.crawlers.Crawler;
+import crawler.crawlers.HttpComponentsCrawler;
+import crawler.crawlers.PhantomJsCrawler;
+
 @Configuration
 public class CrawlerContainer {
 
