@@ -17,12 +17,11 @@ import com.google.common.base.Stopwatch;
 public class BalancerController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BalancerController.class);
-    private final DelegatingCrawler crawler;
+    private final AsyncRequestDelegator delegator;
 
     @Autowired
-    public BalancerController(DelegatingCrawler crawler) {
-        this.crawler = crawler;
-        
+    public BalancerController(AsyncRequestDelegator delegator) {
+        this.delegator = delegator;
     }
 
     @RequestMapping("crawl")
@@ -31,12 +30,22 @@ public class BalancerController {
         List<String> allUrlsToCrawl = Arrays.asList(urls.split(";"));
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-        Map<String, String> result = crawler.crawl(js, allUrlsToCrawl);
+        Map<String, String> result = delegator.crawl(js, allUrlsToCrawl);
         LOGGER.info("crawling took {}", stopwatch.stop());
 
         return result;
     }
 
+    @RequestMapping("crawl_processed")
+    public Map<String, ProcessedHtml> getProcessedHtml(@RequestParam(name = "urls") String urls,
+            @RequestParam(name = "js", defaultValue = "false") boolean js) throws Exception {
+        List<String> allUrlsToCrawl = Arrays.asList(urls.split(";"));
 
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        Map<String, ProcessedHtml> result = delegator.crawlProcessed(js, allUrlsToCrawl);
+        LOGGER.info("crawling took {}", stopwatch.stop());
+
+        return result;
+    }
 
 }

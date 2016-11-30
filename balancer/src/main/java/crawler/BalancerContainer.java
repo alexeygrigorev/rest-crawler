@@ -17,7 +17,7 @@ public class BalancerContainer {
     private Resource serverUrls;
 
     @Bean
-    public DelegatingCrawler crawler() throws Exception {
+    public AsyncRequestDelegator crawler() throws Exception {
         List<String> urls = IOUtils.readLines(serverUrls.getInputStream());
 
         List<CrawlingSerivce> services = Lists.newArrayList();
@@ -25,7 +25,7 @@ public class BalancerContainer {
             services.add(new CrawlingSerivce(url));
         }
 
-        return new DelegatingCrawler(services);
+        return new AsyncRequestDelegator(services);
     }
 
 }
