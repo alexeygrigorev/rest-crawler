@@ -37,7 +37,10 @@ public class HtmlProcessor {
         Elements headers = body.select("h1, h2, h3, h4, h5, h6");
         for (Element htag : headers) {
             String tagName = htag.nodeName().toLowerCase();
-            tags.put(tagName, htag.text());
+            String text = htag.text().trim();
+            if (!text.isEmpty()) {
+                tags.put(tagName, text);
+            }
         }
 
         ProcessedHtml result = new ProcessedHtml();
