@@ -22,9 +22,9 @@ public class HtmlProcessor {
 
     public ProcessedHtml process(String html) {
         Document doc = Jsoup.parse(html);
-        doc.select(TAGS_TO_REMOVE).remove();
-
         String title = doc.title();
+
+        doc.select(TAGS_TO_REMOVE).remove();
 
         String bodyHtml = doc.select("body").outerHtml();
         Document body = Jsoup.parse(bodyHtml);
