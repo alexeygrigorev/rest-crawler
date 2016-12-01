@@ -3,6 +3,7 @@ package crawler;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class CrawlingSerivce {
         LOGGER.debug("from {} with js={} crawling {}", serviceBaseUrl, js, urls);
         String joinedUrls = encode(String.join(";", urls));
         URL service = new URL(serviceBaseUrl + "/crawl?js=" + js + "&urls=" + joinedUrls);
-        String json = IOUtils.toString(service);
+        String json = IOUtils.toString(service, StandardCharsets.UTF_8);
         return mapper.readValue(json, MAP_STRING_STRING);
     }
 
@@ -41,7 +42,7 @@ public class CrawlingSerivce {
         LOGGER.debug("from {} with js={} crawling and processing {}", serviceBaseUrl, js, urls);
         String joinedUrls = encode(String.join(";", urls));
         URL service = new URL(serviceBaseUrl + "/crawl_processed?js=" + js + "&urls=" + joinedUrls);
-        String json = IOUtils.toString(service);
+        String json = IOUtils.toString(service, StandardCharsets.UTF_8);
         return mapper.readValue(json, MAP_STRING_PROCESSED_HTML);
     }
 
