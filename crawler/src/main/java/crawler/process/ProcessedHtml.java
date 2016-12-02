@@ -12,6 +12,8 @@ public class ProcessedHtml {
     private List<String> h4;
     private List<String> h5;
     private List<String> h6;
+    private String metaContent = "";
+    private String metaKeywords = "";
 
     public String getTitle() {
         return title;
@@ -75,6 +77,22 @@ public class ProcessedHtml {
 
     public void setH6(List<String> h6) {
         this.h6 = h6;
+    }
+
+    public String getMetaContent() {
+        return metaContent;
+    }
+
+    public void setMetaContent(String metaContent) {
+        this.metaContent = metaContent;
+    }
+
+    public String getMetaKeywords() {
+        return metaKeywords;
+    }
+
+    public void setMetaKeywords(String metaKeywords) {
+        this.metaKeywords = metaKeywords;
     }
 
 }

@@ -3,6 +3,7 @@ package crawler.process;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +18,28 @@ public class HtmlProcessor {
     public String clean(String html) {
         Document doc = Jsoup.parse(html);
         doc.select(TAGS_TO_REMOVE).remove();
+        removeComments(doc);
         return doc.outerHtml();
     }
 
     public ProcessedHtml process(String html) {
         Document doc = Jsoup.parse(html);
         String title = doc.title();
+
+        ProcessedHtml result = new ProcessedHtml();
+        result.setTitle(title);
+
+        Elements description = doc.select("meta[name=description]");
+        if (!description.isEmpty()) {
+            String metaContent = description.attr("content");
+            result.setMetaContent(metaContent);
+        }
+
+        Elements keywords = doc.select("meta[name=keywords]");
+        if (!keywords.isEmpty()) {
+            String metaKeywords = keywords.attr("content");
+            result.setMetaKeywords(metaKeywords);
+        }
 
         doc.select(TAGS_TO_REMOVE).remove();
 
@@ -32,6 +49,7 @@ public class HtmlProcessor {
         JsoupTextExtractor visitor = new JsoupTextExtractor();
         body.traverse(visitor);
         String content = visitor.getText();
+        result.setContent(content);
 
         ListMultimap<String, String> tags = ArrayListMultimap.create();
         Elements headers = body.select("h1, h2, h3, h4, h5, h6");
@@ -43,9 +61,6 @@ public class HtmlProcessor {
             }
         }
 
-        ProcessedHtml result = new ProcessedHtml();
-        result.setTitle(title);
-        result.setContent(content);
         result.setH1(tags.get("h1"));
         result.setH2(tags.get("h2"));
         result.setH3(tags.get("h3"));
@@ -54,6 +69,18 @@ public class HtmlProcessor {
         result.setH6(tags.get("h6"));
 
         return result;
+    }
+
+    private static void removeComments(Node node) {
+        for (int i = 0; i < node.childNodes().size();) {
+            Node child = node.childNode(i);
+            if (child.nodeName().equals("#comment"))
+                child.remove();
+            else {
+                removeComments(child);
+                i++;
+            }
+        }
     }
 
 }
