@@ -12,7 +12,7 @@ import com.google.common.collect.ListMultimap;
 @Service
 public class HtmlProcessor {
     private static final String TAGS_TO_REMOVE = "iframe, embed, script, noscript, nobr, "
-            + "style, link, img, head, source, wbr, area, base, param";
+            + "style, link, img, source, wbr, area, base, param";
 
     public String clean(String html) {
         Document doc = Jsoup.parse(html);
